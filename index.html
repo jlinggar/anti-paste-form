@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluation Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 650px;
+      margin: 40px auto;
+      padding: 0 20px;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    .warning {
+      color: #d9534f;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Evaluation Response Form</h2>
+  <form id="evaluationForm">
+    <div class="form-group">
+      <label for="userName">Respondent Name / ID:</label>
+      <input type="text" id="userName" required placeholder="Enter your full name">
+    </div>
+
+    <div class="form-group">
+      <label for="userText">Your Answer (Manual typing required):</label>
+      <textarea id="userText" rows="8" required placeholder="Type your response here..."></textarea>
+      <div class="warning">Notice: Copying, pasting, right-clicking, and text-dragging are disabled.</div>
+    </div>
+
+    <button type="submit" id="submitBtn">Submit Response</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script>
+    // 1. PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4Ddu-7UIH_HALYqh-EVDl2xaqK4cmVvXJ8K89SWR6bhTpittbixgXnyBRaoCEqw/exec';
+
+    const textArea = document.getElementById('userText');
+    const form = document.getElementById('evaluationForm');
+    const statusDiv = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // 2. Block Paste, Drop, and Right-Click Context Menu
+    ['paste', 'drop', 'contextmenu'].forEach(eventType => {
+      textArea.addEventListener(eventType, function(e) {
+        e.preventDefault();
+        alert('Pasting, dragging text, and right-click menus are disabled for this evaluation.');
+      });
+    });
+
+    // 3. Block Keyboard Shortcuts (Ctrl+V / Cmd+V)
+    textArea.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        e.preventDefault();
+        alert('Shortcut pasting (Ctrl+V / Cmd+V) is disabled.');
+      }
+    });
+
+    // 4. Handle Form Submission to Google Sheets
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        alert('Please update the GOOGLE_SCRIPT_URL variable with your deployed Web App URL.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      statusDiv.textContent = 'Submitting response...';
+      statusDiv.style.color = '#333';
+
+      const payload = {
+        name: document.getElementById('userName').value,
+        responseText: textArea.value
+      };
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Bypasses CORS restriction for Google Apps Script Web App
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        statusDiv.textContent = 'Response submitted successfully!';
+        statusDiv.style.color = 'green';
+        form.reset();
+        submitBtn.disabled = false;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        statusDiv.textContent = 'Failed to submit response. Please try again.';
+        statusDiv.style.color = 'red';
+        submitBtn.disabled = false;
+      });
+    });
+  </script>
+
+</body>
+</html>
